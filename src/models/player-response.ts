@@ -1,6 +1,6 @@
 interface IPlayerResponse {
   name?: string,
-  index?: number,
+  index: string,
   error: boolean,
   errorText?: string,
 }

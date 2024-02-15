@@ -4,8 +4,6 @@ const players: IPlayer[] = [];
 
 const addPlayer = (player: IPlayer): void => {
   players.push(player);
-  const { name } = player;
-  console.log(`Registration of player with the name ${name} is successful`);
 }
 
 const showPlayers = (): void => {
@@ -20,8 +18,16 @@ const checkPassword = (player: IPlayer): boolean => {
   return players.find((value) => value.password === player.password) !== undefined ? true : false;
 }
 
-const getPlayerIndex = (player: IPlayer): number => {
-  return players.findIndex((value) => value.name === player.name);
+const getPlayerIndex = (player: IPlayer): string => {
+  let index = '';
+  players.filter((value) => {
+    if (value.name === player.name) {
+      index = value.index;      
+      return value.index;               
+    }
+  }
+  );  
+  return index;
 }
 
 export { addPlayer, showPlayers, checkPassword, checkPlayer, getPlayerIndex };
