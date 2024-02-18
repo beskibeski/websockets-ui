@@ -1,8 +1,8 @@
-import IRooomUser from "./room-user";
+import IRoomUser from './room-player';
 
 interface IRoom {
-  roomId: number;
-  roomUsers: IRooomUser;
+  roomId: string;
+  roomUsers: IRoomUser[];
 }
 
 export default IRoom;

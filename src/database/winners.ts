@@ -1,14 +1,23 @@
-import IWinner from "../models/winner";
+import IWinner from '../models/winner';
 
 let winners: IWinner[] = [];
 
-const addWinner = (winner: IWinner) => {
-  winners.push(winner);
-  console.log('Winner added');
+const addWinner = (winnerName: string) => {
+  if (winners.find((lastWinner) => lastWinner.name === winnerName) === undefined) {
+    winners.push({ name: winnerName, wins: 0 }); 
+  }
+};
+
+const addWinToWinner = (winner: IWinner) => {
+  winners.map((lastWinner) => {
+    if (lastWinner.name === winner.name) {
+      lastWinner.wins += 1;
+    }
+  })  
 };
 
 const getWinners = (): IWinner[] => {
   return winners;
 }
 
-export { addWinner, getWinners };
+export { addWinner, getWinners, addWinToWinner };

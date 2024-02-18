@@ -1,6 +1,10 @@
-import IPlayer from "../models/player";
+import IPlayer from '../models/player';
+import IRoomPlayer from '../models/room-player';
+import WebSocketWithId from '../models/websocket';
 
 const players: IPlayer[] = [];
+
+let currentPlayer: IPlayer;
 
 const addPlayer = (player: IPlayer): void => {
   players.push(player);
@@ -18,17 +22,29 @@ const checkPassword = (player: IPlayer): boolean => {
   return players.find((value) => value.password === player.password) !== undefined ? true : false;
 }
 
-const getPlayerIndex = (player: IPlayer): string => {
-  let index = '';
-  players.filter((value) => {
-    if (value.name === player.name) {
-      index = value.index;      
-      return value.index;               
-    }
-  }
-  );  
-  return index;
+const setCurrentPlayer = (player: IPlayer): void => {
+  currentPlayer = player;
 }
 
-export { addPlayer, showPlayers, checkPassword, checkPlayer, getPlayerIndex };
+const getCurrentPlayer = (): IPlayer => {
+  return currentPlayer;
+}
+
+const getCurrentPlayerByIdWithoutPassword = (wsSocket: WebSocketWithId): IRoomPlayer => {
+  const player: IPlayer = players.filter((player) => player.index === wsSocket.id)[0];
+  return {
+    name: player.name,
+    index: player.index,
+  }
+}
+
+export { 
+  addPlayer,
+  showPlayers,
+  checkPassword,
+  checkPlayer,
+  setCurrentPlayer,
+  getCurrentPlayer,
+  getCurrentPlayerByIdWithoutPassword,
+};
   
