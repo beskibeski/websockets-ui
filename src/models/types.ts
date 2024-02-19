@@ -8,9 +8,10 @@ const enum Datatype {
   START_GAME = 'start_game',
   TURN = 'turn',
   ATTACK = 'attack',
+  RANDOM_ATTACK = 'randomAttack',
   FINISH = 'finish',
   ADD_USER_TO_ROOM = 'add_user_to_room',
-  ADD_SHIPS = 'add_ships',
+  ADD_SHIPS = 'add_ships',  
 }
 
 export default Datatype;

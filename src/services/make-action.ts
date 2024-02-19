@@ -6,6 +6,7 @@ import Datatype from '../models/types';
 import { addToRoom, createRoom } from './rooms';
 import WebSocketWithId from '../models/websocket';
 import { addShipsToGameBoard } from './game';
+import { checkIfItIsPlayersTurn } from '../database/game';
 
 const makeActionDependingOndataType = (chunk: Buffer, wsClient: WebSocketWithId): void => {  
   const chunkData = JSON.parse(chunk.toString()) as IData;
@@ -29,9 +30,16 @@ const makeActionDependingOndataType = (chunk: Buffer, wsClient: WebSocketWithId)
     case Datatype.ADD_SHIPS:
       addShipsToGameBoard(chunkData);
     break;
+    case Datatype.ATTACK:
+      console.log('Attack');
+    break;
+    case Datatype.RANDOM_ATTACK:      
+      console.log('Random attack');
+    break;
     case Datatype.PLAY_WITH_BOT:
       console.log(chunkData.type);
-    default:
+    break;
+    default:    
     break;
   }
 }
