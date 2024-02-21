@@ -1,15 +1,21 @@
-import { IGamePlayersShips, IPlayersWithShips } from "../models/game-players-ships";
+import { IGamePlayersShips, IPlayersWithShips, IPoint } from "../models/game-players-ships";
 import IAddShips from "../models/ships";
 import { startGame } from "../services/game";
 
 let games: IGamePlayersShips[] = [];
+
+const NUMBER_OF_POINTS_IN_ROW = 10;
 
 const addShipsToBase = (shipsData: IAddShips): void => {
   const playerData: IPlayersWithShips = {
     indexPlayer: shipsData.indexPlayer,
     ships: shipsData.ships,
     isTurn: true,
+    playerField: makeEmptyField(),
+    enemyField: makeEmptyField(),
   }
+  addShipsToField(playerData);
+  console.log(playerData.playerField)
   if (games.find((game) => game.gameId === shipsData.gameId) === undefined) {    
     const newGame: IGamePlayersShips = {
       gameId: shipsData.gameId,
@@ -80,5 +86,48 @@ const checkIfItIsPlayersTurn = (playerId: string): boolean => {
   return isPlayerTurn;
 }
 
-export { addShipsToBase, getPlayerTurn, getPlayerTurnForStart, getPlayerIdsForGame, checkIfItIsPlayersTurn };
+const addShipsToField = (playerData: IPlayersWithShips) => {  
+  playerData.ships.forEach((ship) => {
+    const {
+      direction,
+      length,
+      position: {
+        x,
+        y,
+      }
+    } = ship;
+    const vertical = y + 1;
+    const horizontal = x + 1; 
+    if (direction) {
+      for (let i = 0; i < length; i += 1) {  
+        playerData.playerField[x][vertical].isOccupied = true;
+      }
+    } else {
+      for (let i = 0; i < length; i += 1) {
+        playerData.playerField[horizontal][y].isOccupied = true;
+      }
+    }
+  });
+}
+
+const makeEmptyField = () => {
+  const emptyField: IPoint[][] = [];
+    for (let i = 0; i < NUMBER_OF_POINTS_IN_ROW; i += 1) {
+        const horizontal = [];
+        for (let j = 0; j < NUMBER_OF_POINTS_IN_ROW; j += 1) {
+          const point: IPoint = {
+            x: i,
+            y: j,
+            isOccupied: false,
+            isAttacked: false,
+          }
+          horizontal.push(point);
+        }
+        emptyField.push(horizontal);
+      };
+  return emptyField;
+}
+
+
+export { addShipsToBase, getPlayerTurn, getPlayerTurnForStart, getPlayerIdsForGame, checkIfItIsPlayersTurn, addShipsToField };
 

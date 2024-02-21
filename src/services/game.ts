@@ -7,8 +7,9 @@ import { wsServer } from '../ws_server';
 import IRoom from '../models/room';
 import { deleteRoomFromBase, getCurrentRoomFromBase } from '../database/rooms';
 import IAddShips from '../models/ships';
-import { addShipsToBase, getPlayerIdsForGame, getPlayerTurn, getPlayerTurnForStart } from '../database/game';
+import { addShipsToBase, addShipsToField, getPlayerIdsForGame, getPlayerTurn, getPlayerTurnForStart } from '../database/game';
 import { IPlayersWithShips } from '../models/game-players-ships';
+import IRandomAttack from '../models/random-attack';
 
 const createGame = (room: IRoom) => {
   const ids: string[] = [];
@@ -46,11 +47,7 @@ const startGame = (shipsData: IPlayersWithShips[], gameId: string) => {
   shipsData.forEach((shipData) => {
     wsServer.clients.forEach((wsClient) => {
       if ((wsClient as WebSocketWithId).id === shipData.indexPlayer) {
-        const playerWithShips: IPlayersWithShips = {    
-          indexPlayer: shipData.indexPlayer,
-          ships: shipData.ships,
-          isTurn: true
-        };
+        const playerWithShips: IPlayersWithShips = shipData;
         const data: IData = {
           type: Datatype.START_GAME,
           data: JSON.stringify(playerWithShips),
@@ -85,4 +82,8 @@ const makeNextTurnForPlayers = (gameId: string, start = false) => {
   });  
 }
 
-export { createGame, addShipsToGameBoard, startGame };
+const makeRandomAttack = (chunkData: IData) => {
+  const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;
+}
+
+export { createGame, addShipsToGameBoard, startGame, makeRandomAttack };

@@ -8,5 +8,14 @@ export interface IGamePlayersShips {
 export interface IPlayersWithShips {
   indexPlayer: string;
   ships: IShip[];
-  isTurn: boolean,
+  isTurn: boolean;
+  playerField: IPoint[][];
+  enemyField: IPoint[][];  
+}
+
+export interface IPoint {
+  x: number;
+  y: number;
+  isOccupied: boolean;
+  isAttacked: boolean
 }
