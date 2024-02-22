@@ -1,6 +1,8 @@
+import IAttack from "../models/attack";
+import { IAttackFeedback, IStatus } from "../models/attack-feedback";
 import { IGamePlayersShips, IPlayersWithShips, IPoint } from "../models/game-players-ships";
 import IAddShips from "../models/ships";
-import { startGame } from "../services/game";
+import { makeHit, startGame } from "../services/game";
 
 let games: IGamePlayersShips[] = [];
 
@@ -13,9 +15,8 @@ const addShipsToBase = (shipsData: IAddShips): void => {
     isTurn: true,
     playerField: makeEmptyField(),
     enemyField: makeEmptyField(),
-  }
-  addShipsToField(playerData);
-  console.log(playerData.playerField)
+  }  
+  addShipsToField(playerData);  
   if (games.find((game) => game.gameId === shipsData.gameId) === undefined) {    
     const newGame: IGamePlayersShips = {
       gameId: shipsData.gameId,
@@ -31,19 +32,6 @@ const addShipsToBase = (shipsData: IAddShips): void => {
       startGame(currentGame.playersWithShips, shipsData.gameId);      
     }
   };
-}
-
-const getPlayerTurnForStart = (gameId: string): string => {
-  let playerToMakeTurnId = '';
-  const players = games.find((game) => 
-    game.gameId === gameId
-  );
-  players?.playersWithShips.forEach((player) => {
-    if (player.isTurn) {    
-      playerToMakeTurnId = player.indexPlayer;      
-    }
-  })
-  return playerToMakeTurnId;
 }
 
 const getPlayerTurn = (gameId: string): string => {
@@ -96,14 +84,14 @@ const addShipsToField = (playerData: IPlayersWithShips) => {
         y,
       }
     } = ship;
-    const vertical = y + 1;
-    const horizontal = x + 1; 
     if (direction) {
-      for (let i = 0; i < length; i += 1) {  
+      for (let i = 0; i < length; i += 1) {
+        const vertical = y + i;    
         playerData.playerField[x][vertical].isOccupied = true;
       }
-    } else {
+    } else {     
       for (let i = 0; i < length; i += 1) {
+        const horizontal = x + i;
         playerData.playerField[horizontal][y].isOccupied = true;
       }
     }
@@ -128,6 +116,143 @@ const makeEmptyField = () => {
   return emptyField;
 }
 
+const checkIfHitInBase = (attack: IAttack): boolean => {
+  let isHit = false;
+  const { gameId, x, y, indexPlayer } = attack;
+  const gameToCheckAttack = games.find((game) => game.gameId === gameId);
+  if (gameToCheckAttack !== undefined) {
+    gameToCheckAttack.playersWithShips.forEach((game) =>  {
+      if (game.indexPlayer !== indexPlayer) {
+        game.playerField.forEach((position) => {
+          position.forEach((point) => {
+            if (point.x === x && point.y === y && point.isOccupied && !point.isAttacked) {
+              point.isAttacked = true;
+              const hit = checkIfItIsKilled(point, game.playerField);
+              makeHit(point, gameToCheckAttack, indexPlayer, hit, game.playerField);
+              isHit = true;
+            } else if (point.x === x && point.y === y && !point.isAttacked) {
+              point.isAttacked = true;
+              makeHit(point, gameToCheckAttack, indexPlayer, 'miss');
+              isHit = false;
+            };
+          });          
+        })
+      };
+    });
+  };
+  return isHit;
+}
 
-export { addShipsToBase, getPlayerTurn, getPlayerTurnForStart, getPlayerIdsForGame, checkIfItIsPlayersTurn, addShipsToField };
+const checkIfItIsKilled = (point: IPoint, playerField: IPoint[][]): IStatus => {
+  const { x, y } = point;
+  let sum = 0;
+  let i = 1;
+  if (x - i >= 0 && playerField[x - i][y].isOccupied) {
+    while (x - i >= 0 && playerField[x - i][y].isOccupied) {
+      if (playerField[x - i][y].isOccupied && !playerField[x - i][y].isAttacked) {
+        sum += 1;
+      }
+      i += 1;
+    }    
+  };
+  i = 1;
+  if (x + i < NUMBER_OF_POINTS_IN_ROW && playerField[x + i][y].isOccupied) {
+    while (x + i < NUMBER_OF_POINTS_IN_ROW && playerField[x + i][y].isOccupied) {
+      if (playerField[x + i][y].isOccupied && !playerField[x + i][y].isAttacked) {
+        sum += 1;
+      }
+      i += 1;
+    }    
+  };
+  i = 1;
+  if (y - i >= 0 && playerField[x][y - i].isOccupied) {
+    while (y - i >= 0 && playerField[x][y - i].isOccupied) {
+      if (playerField[x][y - i].isOccupied && !playerField[x][y - i].isAttacked) {
+        sum += 1;
+      }
+      i += 1;
+    }    
+  };
+  i = 1;
+  if (y + i < NUMBER_OF_POINTS_IN_ROW && playerField[x][y + i].isOccupied) {
+    while (y + i < NUMBER_OF_POINTS_IN_ROW && playerField[x][y + i].isOccupied) {
+      if (playerField[x][y + i].isOccupied && !playerField[x][y + i].isAttacked) {
+        sum += 1;
+      }
+      i += 1;
+    }    
+  };
+  return sum > 0 ? 'shot' : 'killed'; 
+};
+
+const destroyShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): [{ x: number, y: number }] => {  
+  const {
+    position: {
+      x,
+      y,
+    }
+  } = attackFeedback;
+  let destroyArray: [{ x: number, y: number }] = [{ x, y }];
+  let i = 1;
+  if (x - i >= 0 && playerField[x - i][y].isOccupied) {
+    while (x - i >= 0 && playerField[x - i][y].isOccupied) {
+      destroyArray.push({ x: x - i, y: y });
+      i += 1;
+    }
+  };
+  i = 1;
+  if (x + i < NUMBER_OF_POINTS_IN_ROW && playerField[x + i][y].isOccupied) {
+    while (x + i < NUMBER_OF_POINTS_IN_ROW && playerField[x + i][y].isOccupied) {
+      destroyArray.push({ x: x + i, y: y });
+      i += 1;
+    }
+  };
+  i = 1;
+  if (y + i < NUMBER_OF_POINTS_IN_ROW && playerField[x][y + i].isOccupied) {
+    while (y + i < NUMBER_OF_POINTS_IN_ROW && playerField[x][y + i].isOccupied) {
+      destroyArray.push({ x: x, y: y + i });
+      i += 1;
+    }
+  };
+  i = 1;
+  if (y - i >= 0 && playerField[x][y - i].isOccupied) {
+    while (y + i >= 0 && playerField[x][y + i].isOccupied) {
+      destroyArray.push({ x: x, y: y - i });
+      i += 1;
+    }
+  };
+  return destroyArray;
+}
+
+const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): [{ x: number, y: number }] => {
+   const {
+    position: {
+      x,
+      y,
+    }
+  } = attackFeedback;
+  let missedArray: [{ x: number, y: number }] = [{ x, y }];  
+  let i = 1;
+  while (x - i >= 0 && playerField[x][y].isOccupied) {
+    if (y > 0) {      
+      missedArray.push({ x: x, y: y - 1 });
+    }
+    if (y < NUMBER_OF_POINTS_IN_ROW - 1) {      
+      missedArray.push({ x: x, y: y + 1 });
+    }
+    i += 1;
+  };  
+  return missedArray;
+};
+
+export {
+  addShipsToBase,
+  getPlayerTurn,
+  getPlayerIdsForGame,
+  checkIfItIsPlayersTurn,
+  addShipsToField,
+  checkIfHitInBase,
+  destroyShipArray,
+  missedShipArray,
+};
 

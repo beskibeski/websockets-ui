@@ -7,9 +7,18 @@ import { wsServer } from '../ws_server';
 import IRoom from '../models/room';
 import { deleteRoomFromBase, getCurrentRoomFromBase } from '../database/rooms';
 import IAddShips from '../models/ships';
-import { addShipsToBase, addShipsToField, getPlayerIdsForGame, getPlayerTurn, getPlayerTurnForStart } from '../database/game';
-import { IPlayersWithShips } from '../models/game-players-ships';
+import {
+  addShipsToBase,
+  checkIfHitInBase,
+  destroyShipArray,
+  getPlayerIdsForGame,
+  getPlayerTurn,
+  missedShipArray,  
+} from '../database/game';
+import { IGamePlayersShips, IPlayersWithShips, IPoint } from '../models/game-players-ships';
 import IRandomAttack from '../models/random-attack';
+import IAttack from '../models/attack';
+import { IAttackFeedback, IStatus } from '../models/attack-feedback';
 
 const createGame = (room: IRoom) => {
   const ids: string[] = [];
@@ -57,16 +66,11 @@ const startGame = (shipsData: IPlayersWithShips[], gameId: string) => {
       }
     })
   })
-  makeNextTurnForPlayers(gameId, true);
+  makeNextTurnForPlayers(gameId);
 };
 
-const makeNextTurnForPlayers = (gameId: string, start = false) => {
-  let playerToMakeNextTurn = '';
-  if (start) {
-    playerToMakeNextTurn = getPlayerTurnForStart(gameId);
-  } else {
-    playerToMakeNextTurn = getPlayerTurn(gameId);
-  };
+const makeNextTurnForPlayers = (gameId: string) => {
+  const playerToMakeNextTurn = getPlayerTurn(gameId);  
   const ids = getPlayerIdsForGame(gameId);
   ids.forEach((id) => {
     wsServer.clients.forEach((wsClient) => {
@@ -86,4 +90,71 @@ const makeRandomAttack = (chunkData: IData) => {
   const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;
 }
 
-export { createGame, addShipsToGameBoard, startGame, makeRandomAttack };
+const makeAttack = (chunkData: IData) => {
+  console.log('attack!!!');
+  const attack = JSON.parse(chunkData.data) as IAttack;
+  const hit = checkIfHitInBase(attack);
+  if (!hit) {
+    makeNextTurnForPlayers(attack.gameId);
+  }
+}
+
+const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hitStatus: IStatus, playerField: IPoint[][] = []) => {  
+  const ids = getPlayerIdsForGame(game.gameId);
+  ids.forEach((id) => {
+    wsServer.clients.forEach((wsClient) => {
+      if ((wsClient as WebSocketWithId).id === id) {
+        const attackFeedback: IAttackFeedback = {
+          position: {
+            x: point.x,
+            y: point.y,
+          },
+          currentPlayer: indexPlayer,
+          status: hitStatus,
+        };
+        const data: IData = {
+          type: Datatype.ATTACK,
+          data: JSON.stringify(attackFeedback),
+          id: 0,
+        }
+        wsClient.send(JSON.stringify(data));
+        if (hitStatus === 'killed') {
+          destroyShipArray(attackFeedback, playerField).forEach((destroyedPosition) => {
+            const attackFeedback: IAttackFeedback = {
+              position: {
+                x: destroyedPosition.x,
+                y: destroyedPosition.y,
+              },
+              currentPlayer: indexPlayer,
+              status: hitStatus,
+            };
+            const data: IData = {
+              type: Datatype.ATTACK,
+              data: JSON.stringify(attackFeedback),
+              id: 0,
+            }
+            wsClient.send(JSON.stringify(data));
+          });
+         /*missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
+            const attackFeedback: IAttackFeedback = {
+              position: {
+                x: missedPosition.x,
+                y: missedPosition.y,
+              },
+              currentPlayer: indexPlayer,
+              status: 'miss',
+            };
+            const data: IData = {
+              type: Datatype.ATTACK,
+              data: JSON.stringify(attackFeedback),
+              id: 0,
+            }
+            wsClient.send(JSON.stringify(data));
+          });*/
+        } 
+      }
+    });      
+  })
+}
+
+export { createGame, addShipsToGameBoard, startGame, makeRandomAttack, makeAttack, makeHit };
