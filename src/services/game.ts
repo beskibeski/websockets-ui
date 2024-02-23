@@ -135,20 +135,22 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
             }
             wsClient.send(JSON.stringify(data));
           missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
-            const attackFeedback: IAttackFeedback = {
-              position: {
-                x: missedPosition.x,
-                y: missedPosition.y,
-              },
-              currentPlayer: indexPlayer,
-              status: 'miss',
-            };
-            const data: IData = {
-              type: Datatype.ATTACK,
-              data: JSON.stringify(attackFeedback),
-              id: 0,
+            if (missedPosition.x !== - 1) {
+              const attackFeedback: IAttackFeedback = {
+                position: {
+                  x: missedPosition.x,
+                  y: missedPosition.y,
+                },
+                currentPlayer: indexPlayer,
+                status: 'miss',
+              };
+              const data: IData = {
+                type: Datatype.ATTACK,
+                data: JSON.stringify(attackFeedback),
+                id: 0,
+              }
+              wsClient.send(JSON.stringify(data));
             }
-            wsClient.send(JSON.stringify(data));
           });
           });         
         } 

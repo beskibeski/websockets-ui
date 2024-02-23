@@ -231,7 +231,7 @@ const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][
       y,
     }
   } = attackFeedback;
-  let missedArray: [{ x: number, y: number }] = [{ x: 0, y: 0 }];  
+  let missedArray: [{ x: number, y: number }] = [{ x: -1, y: -1 }];
   if (y - 1 >= 0 && !playerField[x][y - 1].isOccupied && !playerField[x][y - 1].isAttacked) {
     missedArray.push({ x: x, y: y - 1 });
   };
