@@ -134,8 +134,7 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
               id: 0,
             }
             wsClient.send(JSON.stringify(data));
-          });
-         /*missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
+          missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
             const attackFeedback: IAttackFeedback = {
               position: {
                 x: missedPosition.x,
@@ -150,7 +149,8 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
               id: 0,
             }
             wsClient.send(JSON.stringify(data));
-          });*/
+          });
+          });         
         } 
       }
     });      

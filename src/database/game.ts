@@ -216,7 +216,7 @@ const destroyShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[]
   };
   i = 1;
   if (y - i >= 0 && playerField[x][y - i].isOccupied) {
-    while (y + i >= 0 && playerField[x][y + i].isOccupied) {
+    while (y - i >= 0 && playerField[x][y - i].isOccupied) {
       destroyArray.push({ x: x, y: y - i });
       i += 1;
     }
@@ -231,17 +231,31 @@ const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][
       y,
     }
   } = attackFeedback;
-  let missedArray: [{ x: number, y: number }] = [{ x, y }];  
-  let i = 1;
-  while (x - i >= 0 && playerField[x][y].isOccupied) {
-    if (y > 0) {      
-      missedArray.push({ x: x, y: y - 1 });
-    }
-    if (y < NUMBER_OF_POINTS_IN_ROW - 1) {      
-      missedArray.push({ x: x, y: y + 1 });
-    }
-    i += 1;
-  };  
+  let missedArray: [{ x: number, y: number }] = [{ x: 0, y: 0 }];  
+  if (y - 1 >= 0 && !playerField[x][y - 1].isOccupied && !playerField[x][y - 1].isAttacked) {
+    missedArray.push({ x: x, y: y - 1 });
+  };
+  if (x - 1 >= 0 && y - 1 >= 0 && !playerField[x - 1][y - 1].isOccupied && !playerField[x - 1][y - 1].isAttacked) {
+    missedArray.push({ x: x - 1, y: y - 1 });
+  };
+  if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y - 1 >= 0 && !playerField[x + 1][y - 1].isOccupied && !playerField[x + 1][y - 1].isAttacked) {
+    missedArray.push({ x: x + 1, y: y - 1 });
+  };
+  if (y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x][y + 1].isOccupied && !playerField[x][y + 1].isAttacked) {
+    missedArray.push({ x: x, y: y + 1 });
+  };
+  if (x - 1 >= 0 && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x - 1][y + 1].isOccupied && !playerField[x - 1][y + 1].isAttacked) {
+    missedArray.push({ x: x - 1, y: y + 1 });
+  };
+  if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y + 1].isOccupied && !playerField[x + 1][y + 1].isAttacked) {
+    missedArray.push({ x: x + 1, y: y + 1 });
+  };
+  if (x - 1 >= 0 && !playerField[x - 1][y].isOccupied && !playerField[x - 1][y].isAttacked) {
+    missedArray.push({ x: x - 1, y: y });
+  };
+  if (x + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y].isOccupied && !playerField[x + 1][y].isAttacked) {
+    missedArray.push({ x: x + 1, y: y });
+  };   
   return missedArray;
 };
 
