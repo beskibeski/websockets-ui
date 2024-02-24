@@ -1,6 +1,6 @@
 import IRoom from '../models/room';
 import WebSocketWithId from '../models/websocket';
-import { getCurrentPlayerByIdWithoutPassword } from './players';
+import { getPlayerById } from './players';
 
 let rooms: IRoom[] = [];
 
@@ -16,7 +16,7 @@ const addPlayerToRoomBase = (room: IRoom, wsSocket: WebSocketWithId): void => {
   console.log('Player is added to room');  
   rooms.forEach((roomInBase) => {    
     if (roomInBase.roomId === room.roomId && roomInBase.roomUsers.length <= 1) {      
-      roomInBase.roomUsers.push(getCurrentPlayerByIdWithoutPassword(wsSocket));
+      roomInBase.roomUsers.push(getPlayerById(wsSocket.id));
     }
   });  
 }

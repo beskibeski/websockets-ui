@@ -1,6 +1,7 @@
 import IAttack from "../models/attack";
 import { IAttackFeedback, IStatus } from "../models/attack-feedback";
 import { IGamePlayersShips, IPlayersWithShips, IPoint } from "../models/game-players-ships";
+import IRandomAttack from "../models/random-attack";
 import IAddShips from "../models/ships";
 import { makeHit, startGame } from "../services/game";
 
@@ -98,6 +99,36 @@ const addShipsToField = (playerData: IPlayersWithShips) => {
   });
 }
 
+const getNotAttackedRandomPoint = (randomAttack: IRandomAttack): { x: number, y: number} => {
+  let notAttackedPoint = {
+    x: -1,
+    y: -1,
+  }
+  const { gameId, indexPlayer} = randomAttack;
+  const gameToMakeNotAttackePointsArray = getGameById(gameId);
+  let notAttackedPoints: [{ x: number, y: number}] = [{
+    x: -1,
+    y: -1,
+  }];
+  if (gameToMakeNotAttackePointsArray !== undefined) {
+    gameToMakeNotAttackePointsArray.playersWithShips.forEach((game) =>  {
+      if (game.indexPlayer !== indexPlayer) {
+        game.playerField.forEach((position) => {
+          position.forEach((point) => {
+            if (!point.isAttacked) {                         
+             notAttackedPoints.push({ x: point.x, y: point.y })
+            };
+          });          
+        })
+        notAttackedPoints.slice(1);
+        const randomIndex = Math.floor(Math.random() * (notAttackedPoints.length - 1));
+        notAttackedPoint = notAttackedPoints[randomIndex];
+      };
+    });
+  }  
+  return notAttackedPoint;
+}
+
 const makeEmptyField = () => {
   const emptyField: IPoint[][] = [];
     for (let i = 0; i < NUMBER_OF_POINTS_IN_ROW; i += 1) {
@@ -116,10 +147,17 @@ const makeEmptyField = () => {
   return emptyField;
 }
 
+const getGameById = (gameId: string): IGamePlayersShips | undefined => {
+  const game = games.find((game) => game.gameId === gameId);
+  if (game !== undefined) {    
+    return game;
+  }
+};
+
 const checkIfHitInBase = (attack: IAttack): boolean => {
   let isHit = false;
   const { gameId, x, y, indexPlayer } = attack;
-  const gameToCheckAttack = games.find((game) => game.gameId === gameId);
+  const gameToCheckAttack = getGameById(gameId);
   if (gameToCheckAttack !== undefined) {
     gameToCheckAttack.playersWithShips.forEach((game) =>  {
       if (game.indexPlayer !== indexPlayer) {
@@ -288,6 +326,7 @@ export {
   checkIfHitInBase,
   destroyShipArray,
   missedShipArray,
-  checkIfThereArePointWithShips
+  checkIfThereArePointWithShips,
+  getNotAttackedRandomPoint,
 };
 

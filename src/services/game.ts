@@ -5,13 +5,14 @@ import Datatype from '../models/types';
 import WebSocketWithId from '../models/websocket';
 import { wsServer } from '../ws_server';
 import IRoom from '../models/room';
-import { deleteRoomFromBase, getCurrentRoomFromBase, getRoomsFromBase } from '../database/rooms';
+import { deleteRoomFromBase, getCurrentRoomFromBase } from '../database/rooms';
 import IAddShips from '../models/ships';
 import {
   addShipsToBase,
   checkIfHitInBase,
   checkIfThereArePointWithShips,
-  destroyShipArray,
+  destroyShipArray, 
+  getNotAttackedRandomPoint,
   getPlayerIdsForGame,
   getPlayerTurn,
   missedShipArray,  
@@ -93,7 +94,22 @@ const makeNextTurnForPlayers = (gameId: string) => {
 }
 
 const makeRandomAttack = (chunkData: IData) => {
-  const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;
+  console.log('Random attack initiated!')
+  const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;  
+  const notAttackedPoint = getNotAttackedRandomPoint(randomAttack);
+  const newRandomAttack: IAttack = {
+    gameId: randomAttack.gameId,
+    x: notAttackedPoint.x,
+    y: notAttackedPoint.y,
+    indexPlayer: randomAttack.indexPlayer,
+  };
+  const dataForAttack: IData = {
+    type: Datatype.ATTACK,
+    data: JSON.stringify(newRandomAttack),
+    id: 0,
+  }
+  console.log(dataForAttack)
+  makeAttack(dataForAttack);
 }
 
 const makeAttack = (chunkData: IData) => {  
@@ -161,7 +177,7 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
           });
           const isWin = checkIfThereArePointWithShips(playerField);
           if (isWin) {
-            makeWin(indexPlayer, wsClient as WebSocketWithId);            
+            makeWin(indexPlayer, wsClient as WebSocketWithId);
           };          
         } 
       }
