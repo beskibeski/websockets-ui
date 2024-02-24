@@ -22,9 +22,9 @@ const addPlayerToRoomBase = (room: IRoom, wsSocket: WebSocketWithId): void => {
 }
 
 const deleteRoomFromBase = (roomToDelete: IRoom): void => {
-  rooms = rooms.filter((room) => {
-    room.roomId !== roomToDelete.roomId;
-  });
+  rooms = rooms.filter((room) => 
+    room.roomId !== roomToDelete.roomId
+  );
 }
 
 const getCurrentRoomFromBase = (currentRoom: IRoom): IRoom=> {

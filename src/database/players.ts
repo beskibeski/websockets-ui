@@ -10,8 +10,8 @@ const addPlayer = (player: IPlayer): void => {
   players.push(player);
 }
 
-const showPlayers = (): void => {
-  console.log(players);
+const getPlayers = (): IPlayer[] => {
+  return players;
 }
 
 const checkPlayer = (player: IPlayer): boolean => {
@@ -38,13 +38,22 @@ const getCurrentPlayerByIdWithoutPassword = (wsSocket: WebSocketWithId): IRoomPl
   }
 }
 
+const getPlayerNameById = (playerId: string): string => {
+  const player = players.find((player) => player.index === playerId)?.name;
+  if(player !== undefined) {
+    return player;
+  }
+  return '';
+}
+
 export { 
   addPlayer,
-  showPlayers,
+  getPlayers,
   checkPassword,
   checkPlayer,
   setCurrentPlayer,
   getCurrentPlayer,
   getCurrentPlayerByIdWithoutPassword,
+  getPlayerNameById,
 };
   

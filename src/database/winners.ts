@@ -8,16 +8,16 @@ const addWinner = (winnerName: string) => {
   }
 };
 
-const addWinToWinner = (winner: IWinner) => {
-  winners.map((lastWinner) => {
-    if (lastWinner.name === winner.name) {
-      lastWinner.wins += 1;
+const addWinToWinner = (winnerName: string) => {
+  winners.forEach((winner) => {
+    if (winner.name === winnerName) {
+      winner.wins += 1;
     }
-  })  
+  });
 };
 
 const getWinners = (): IWinner[] => {
   return winners;
-}
+};
 
 export { addWinner, getWinners, addWinToWinner };

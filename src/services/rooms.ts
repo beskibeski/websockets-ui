@@ -4,6 +4,7 @@ import { getRoomsFromBase, addRoomToBase, addPlayerToRoomBase, checkIfPlayerIsAl
 import IRoom from '../models/room';
 import WebSocketWithId from '../models/websocket';
 import { createGame } from './game';
+import { wsServer } from '../ws_server';
 
 const createRoom = (wsClient: WebSocketWithId) => {
   console.log('Room is created');  
@@ -13,23 +14,26 @@ const createRoom = (wsClient: WebSocketWithId) => {
   }; 
   addRoomToBase(room);
   const data: IData = {
-    type: Datatype.UPDATE_ROOM,
-    data: JSON.stringify(getRoomsFromBase()),
+    type: Datatype.CREATE_NEW_ROOM,
+    data: JSON.stringify(room),
     id: 0, 
-  }
+  }  
   wsClient.send(JSON.stringify(data));
+  console.log(getRoomsFromBase())
   addPlayerToRoomBase(room, wsClient);
-  updateRoom(wsClient);
+  updateRoom();
 }
 
-const updateRoom = (wsClient: WebSocketWithId) => {
+const updateRoom = () => {
   console.log('Rooms updated');
-  const data: IData = {
-    type: Datatype.UPDATE_ROOM,
-    data: JSON.stringify(getRoomsFromBase()),
-    id: 0,    
-  };
-  wsClient.send(JSON.stringify(data));
+  wsServer.clients.forEach((wsClient) => {
+    const data: IData = {
+      type: Datatype.UPDATE_ROOM,
+      data: JSON.stringify(getRoomsFromBase()),
+      id: 0,    
+    };
+    wsClient.send(JSON.stringify(data));
+  });  
 }
 
 const addToRoom = (wsClient: WebSocketWithId, chunkData: IData) => {
@@ -41,7 +45,7 @@ const addToRoom = (wsClient: WebSocketWithId, chunkData: IData) => {
   if (!checkIfPlayerIsAlreadyInTheRoomAsCreator(room, wsClient)) {
     addPlayerToRoomBase(room, wsClient);
   };  
-  updateRoom(wsClient);
+  updateRoom();
   if (getCurrentRoomFromBaseLength(room) > 1) {
     createGame(room);
   }

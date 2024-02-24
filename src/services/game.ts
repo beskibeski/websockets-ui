@@ -5,11 +5,12 @@ import Datatype from '../models/types';
 import WebSocketWithId from '../models/websocket';
 import { wsServer } from '../ws_server';
 import IRoom from '../models/room';
-import { deleteRoomFromBase, getCurrentRoomFromBase } from '../database/rooms';
+import { deleteRoomFromBase, getCurrentRoomFromBase, getRoomsFromBase } from '../database/rooms';
 import IAddShips from '../models/ships';
 import {
   addShipsToBase,
   checkIfHitInBase,
+  checkIfThereArePointWithShips,
   destroyShipArray,
   getPlayerIdsForGame,
   getPlayerTurn,
@@ -19,6 +20,10 @@ import { IGamePlayersShips, IPlayersWithShips, IPoint } from '../models/game-pla
 import IRandomAttack from '../models/random-attack';
 import IAttack from '../models/attack';
 import { IAttackFeedback, IStatus } from '../models/attack-feedback';
+import { addWinToWinner } from '../database/winners';
+import { getPlayerNameById } from '../database/players';
+import { updateRoom } from './rooms';
+import updateWinners from './winners';
 
 const createGame = (room: IRoom) => {
   const ids: string[] = [];
@@ -41,9 +46,9 @@ const createGame = (room: IRoom) => {
         wsClient.send(JSON.stringify(data));
       }
     })
-  });
-  console.log('Game created');
+  });  
   deleteRoomFromBase(room);
+  console.log('Game created');
 }
 
 const addShipsToGameBoard = (chunkData: IData) => {  
@@ -70,6 +75,7 @@ const startGame = (shipsData: IPlayersWithShips[], gameId: string) => {
 };
 
 const makeNextTurnForPlayers = (gameId: string) => {
+  console.log('Next turn')
   const playerToMakeNextTurn = getPlayerTurn(gameId);  
   const ids = getPlayerIdsForGame(gameId);
   ids.forEach((id) => {
@@ -90,8 +96,7 @@ const makeRandomAttack = (chunkData: IData) => {
   const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;
 }
 
-const makeAttack = (chunkData: IData) => {
-  console.log('attack!!!');
+const makeAttack = (chunkData: IData) => {  
   const attack = JSON.parse(chunkData.data) as IAttack;
   const hit = checkIfHitInBase(attack);
   if (!hit) {
@@ -99,7 +104,8 @@ const makeAttack = (chunkData: IData) => {
   }
 }
 
-const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hitStatus: IStatus, playerField: IPoint[][] = []) => {  
+const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hitStatus: IStatus, playerField: IPoint[][] = []) => {
+  console.log('Attack!!!');  
   const ids = getPlayerIdsForGame(game.gameId);
   ids.forEach((id) => {
     wsServer.clients.forEach((wsClient) => {
@@ -133,7 +139,7 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
               data: JSON.stringify(attackFeedback),
               id: 0,
             }
-            wsClient.send(JSON.stringify(data));
+            wsClient.send(JSON.stringify(data));          
           missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
             if (missedPosition.x !== - 1) {
               const attackFeedback: IAttackFeedback = {
@@ -152,11 +158,30 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
               wsClient.send(JSON.stringify(data));
             }
           });
-          });         
+          });
+          const isWin = checkIfThereArePointWithShips(playerField);
+          if (isWin) {
+            makeWin(indexPlayer, wsClient as WebSocketWithId);            
+          };          
         } 
       }
     });      
   })
+}
+
+const makeWin = (playerId: string, wsClient: WebSocketWithId) => {  
+  const data: IData = {
+    type: Datatype.FINISH,
+    data: JSON.stringify({ winPlayer: playerId}),
+    id: 0,
+  }
+  wsClient.send(JSON.stringify(data));  
+  if (wsClient.id === playerId) {
+    addWinToWinner(getPlayerNameById(playerId));
+    console.log('Game finished'); 
+    updateRoom();
+    updateWinners();
+  };  
 }
 
 export { createGame, addShipsToGameBoard, startGame, makeRandomAttack, makeAttack, makeHit };

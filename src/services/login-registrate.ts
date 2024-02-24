@@ -1,11 +1,12 @@
 import IPlayer from '../models/player';
 import IData from '../models/data';
 import IPlayerResponse from '../models/player-response';
-import { addPlayer, setCurrentPlayer} from '../database/players';
+import { addPlayer, getPlayerNameById, setCurrentPlayer} from '../database/players';
 import Datatype from '../models/types';
 import { updateRoom } from './rooms';
 import updateWinners from './winners';
 import WebSocketWithId from '../models/websocket';
+import { addWinner } from '../database/winners';
 
 const login = (wsClient: WebSocketWithId, playerData: IPlayer) => {
     const playerDataToSend: IPlayerResponse = {
@@ -19,9 +20,9 @@ const login = (wsClient: WebSocketWithId, playerData: IPlayer) => {
       id: 0,      
     };
     console.log(`Login for player ${playerData.name} successful`);
-    wsClient.send(JSON.stringify(dataToSend));
-    updateRoom(wsClient);
-    updateWinners(wsClient);  
+    wsClient.send(JSON.stringify(dataToSend));    
+    updateRoom();
+    updateWinners();  
     setCurrentPlayer(playerData);      
   }
   
@@ -41,6 +42,7 @@ const login = (wsClient: WebSocketWithId, playerData: IPlayer) => {
   const registrateNewPlayer = (wsClient: WebSocketWithId, playerData: IPlayer) => {
     playerData.index = wsClient.id;
     addPlayer(playerData);
+    addWinner(playerData.name);
     console.log(`Registration of player ${playerData.name} is successful`);
     login(wsClient, playerData);
   }

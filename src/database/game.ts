@@ -234,30 +234,50 @@ const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][
   let missedArray: [{ x: number, y: number }] = [{ x: -1, y: -1 }];
   if (y - 1 >= 0 && !playerField[x][y - 1].isOccupied && !playerField[x][y - 1].isAttacked) {
     missedArray.push({ x: x, y: y - 1 });
+    playerField[x][y - 1].isAttacked === !playerField[x][y - 1].isAttacked;
   };
   if (x - 1 >= 0 && y - 1 >= 0 && !playerField[x - 1][y - 1].isOccupied && !playerField[x - 1][y - 1].isAttacked) {
     missedArray.push({ x: x - 1, y: y - 1 });
+    playerField[x - 1][y - 1].isAttacked === !playerField[x - 1][y - 1].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y - 1 >= 0 && !playerField[x + 1][y - 1].isOccupied && !playerField[x + 1][y - 1].isAttacked) {
     missedArray.push({ x: x + 1, y: y - 1 });
+    playerField[x + 1][y - 1].isAttacked === !playerField[x + 1][y - 1];
   };
   if (y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x][y + 1].isOccupied && !playerField[x][y + 1].isAttacked) {
     missedArray.push({ x: x, y: y + 1 });
+    playerField[x][y + 1].isAttacked === !playerField[x][y + 1];
   };
   if (x - 1 >= 0 && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x - 1][y + 1].isOccupied && !playerField[x - 1][y + 1].isAttacked) {
     missedArray.push({ x: x - 1, y: y + 1 });
+    playerField[x - 1][y + 1].isAttacked === !playerField[x - 1][y + 1].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y + 1].isOccupied && !playerField[x + 1][y + 1].isAttacked) {
     missedArray.push({ x: x + 1, y: y + 1 });
+    playerField[x + 1][y + 1].isAttacked === !playerField[x + 1][y + 1];
   };
   if (x - 1 >= 0 && !playerField[x - 1][y].isOccupied && !playerField[x - 1][y].isAttacked) {
     missedArray.push({ x: x - 1, y: y });
+    playerField[x - 1][y].isAttacked === !playerField[x - 1][y].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y].isOccupied && !playerField[x + 1][y].isAttacked) {
     missedArray.push({ x: x + 1, y: y });
+    playerField[x + 1][y].isAttacked === !playerField[x + 1][y].isAttacked;
   };   
   return missedArray;
 };
+
+const checkIfThereArePointWithShips = (playerField: IPoint[][]): boolean => {
+  let noShipPoints = true;
+  playerField.forEach((points) => {
+    points.forEach((point) => {
+      if (point.isOccupied && !point.isAttacked) {
+        noShipPoints = false;
+      }
+    })
+  })
+  return noShipPoints;
+}
 
 export {
   addShipsToBase,
@@ -268,5 +288,6 @@ export {
   checkIfHitInBase,
   destroyShipArray,
   missedShipArray,
+  checkIfThereArePointWithShips
 };
 
