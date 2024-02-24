@@ -35,22 +35,6 @@ const addShipsToBase = (shipsData: IAddShips): void => {
   };
 }
 
-const getPlayerTurn = (gameId: string): string => {
-  let playerToMakeTurnId = '';
-  const players = games.find((game) => 
-    game.gameId === gameId
-  );
-  players?.playersWithShips.forEach((player) => {
-    if (!player.isTurn) {
-      player.isTurn = !player.isTurn;
-    } else {      
-      player.isTurn = !player.isTurn;
-      playerToMakeTurnId = player.indexPlayer;      
-    }
-  })
-  return playerToMakeTurnId;
-}
-
 const getPlayerIdsForGame = (gameId: string): string[] => {
   let playerIds: string[] = []
   games.forEach((game) => {
@@ -73,6 +57,27 @@ const checkIfItIsPlayersTurn = (playerId: string): boolean => {
     })
   })
   return isPlayerTurn;
+}
+
+const getPlayerWhosTurnItWas = (gameId: string): string => {
+  let playerWhosTurnIs: string = '';
+  games.forEach((game) => {
+    game.playersWithShips.forEach((player) => {
+      if (player.isTurn) {
+        playerWhosTurnIs = player.indexPlayer;
+      }
+    })
+  });
+  return playerWhosTurnIs;
+}
+
+const reversePlayersTurns = (gameId: string) => {
+  games.forEach((game) => {
+    game.playersWithShips.forEach((player) => {
+      player.isTurn = !player.isTurn;        
+      }
+    )}
+  ) 
 }
 
 const addShipsToField = (playerData: IPlayersWithShips) => {  
@@ -319,7 +324,6 @@ const checkIfThereArePointWithShips = (playerField: IPoint[][]): boolean => {
 
 export {
   addShipsToBase,
-  getPlayerTurn,
   getPlayerIdsForGame,
   checkIfItIsPlayersTurn,
   addShipsToField,
@@ -328,5 +332,7 @@ export {
   missedShipArray,
   checkIfThereArePointWithShips,
   getNotAttackedRandomPoint,
+  getPlayerWhosTurnItWas,
+  reversePlayersTurns,
 };
 

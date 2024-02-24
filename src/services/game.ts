@@ -14,8 +14,9 @@ import {
   destroyShipArray, 
   getNotAttackedRandomPoint,
   getPlayerIdsForGame,
-  getPlayerTurn,
-  missedShipArray,  
+  getPlayerWhosTurnItWas,
+  missedShipArray,
+  reversePlayersTurns,  
 } from '../database/game';
 import { IGamePlayersShips, IPlayersWithShips, IPoint } from '../models/game-players-ships';
 import IRandomAttack from '../models/random-attack';
@@ -71,26 +72,29 @@ const startGame = (shipsData: IPlayersWithShips[], gameId: string) => {
         wsClient.send(JSON.stringify(data));
       }
     })
+    makeNextTurnForPlayers(gameId, true);
   })
-  makeNextTurnForPlayers(gameId);
 };
 
-const makeNextTurnForPlayers = (gameId: string) => {
-  console.log('Next turn')
-  const playerToMakeNextTurn = getPlayerTurn(gameId);  
-  const ids = getPlayerIdsForGame(gameId);
+const makeNextTurnForPlayers = (gameId: string, hitStatus: boolean) => {  
+  let nextPlayer = getPlayerWhosTurnItWas(gameId);
+  const ids = getPlayerIdsForGame(gameId);  
+  if (!hitStatus) {    
+    reversePlayersTurns(gameId);
+    nextPlayer = getPlayerWhosTurnItWas(gameId);
+  };
   ids.forEach((id) => {
     wsServer.clients.forEach((wsClient) => {
       if ((wsClient as WebSocketWithId).id === id) {
         const data: IData = {
           type: Datatype.TURN,
-          data: JSON.stringify({ currentPlayer: playerToMakeNextTurn }),
+          data: JSON.stringify({ currentPlayer: nextPlayer }),
           id: 0,
         }
         wsClient.send(JSON.stringify(data));
       }    
     })
-  });  
+  }); 
 }
 
 const makeRandomAttack = (chunkData: IData) => {
@@ -107,8 +111,7 @@ const makeRandomAttack = (chunkData: IData) => {
     type: Datatype.ATTACK,
     data: JSON.stringify(newRandomAttack),
     id: 0,
-  }
-  console.log(dataForAttack)
+  };
   makeAttack(dataForAttack);
 }
 
@@ -116,9 +119,11 @@ const makeAttack = (chunkData: IData) => {
   const attack = JSON.parse(chunkData.data) as IAttack;
   const hit = checkIfHitInBase(attack);
   if (!hit) {
-    makeNextTurnForPlayers(attack.gameId);
+    makeNextTurnForPlayers(attack.gameId, false);
+  } else {
+    makeNextTurnForPlayers(attack.gameId, true);
   }
-}
+};
 
 const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hitStatus: IStatus, playerField: IPoint[][] = []) => {
   console.log('Attack!!!');  
@@ -140,7 +145,7 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
           id: 0,
         }
         wsClient.send(JSON.stringify(data));
-        if (hitStatus === 'killed') {
+        if (hitStatus === 'killed') {  
           destroyShipArray(attackFeedback, playerField).forEach((destroyedPosition) => {
             const attackFeedback: IAttackFeedback = {
               position: {
@@ -178,7 +183,7 @@ const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hi
           const isWin = checkIfThereArePointWithShips(playerField);
           if (isWin) {
             makeWin(indexPlayer, wsClient as WebSocketWithId);
-          };          
+          };
         } 
       }
     });      
