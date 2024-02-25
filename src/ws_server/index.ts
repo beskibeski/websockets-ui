@@ -20,10 +20,13 @@ export default {
       })
 
       wsClient.on('close', () => {
-        console.log('Websocket is disconnected');
+        console.log(`Websocket on ${Object.values(req.headers)[0]} with security key ${Object.values(req.headers)[10]} is disconnected`);
       });      
     }
     
-    wsserver.on('connection', onConnect);    
+    wsserver.on('connection', onConnect);
+    wsserver.on('error', error => {
+      console.log(error);
+    });    
   }
 };

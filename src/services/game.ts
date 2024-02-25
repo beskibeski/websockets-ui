@@ -10,6 +10,7 @@ import IAddShips from '../models/ships';
 import {
   addShipsToBase,
   checkIfHitInBase,
+  checkIfItIsAttacked,
   checkIfThereArePointWithShips,
   destroyShipArray, 
   getNotAttackedRandomPoint,
@@ -71,9 +72,9 @@ const startGame = (shipsData: IPlayersWithShips[], gameId: string) => {
         }
         wsClient.send(JSON.stringify(data));
       }
-    })
-    makeNextTurnForPlayers(gameId, true);
+    })    
   })
+  makeNextTurnForPlayers(gameId, true);
 };
 
 const makeNextTurnForPlayers = (gameId: string, hitStatus: boolean) => {  
@@ -97,8 +98,7 @@ const makeNextTurnForPlayers = (gameId: string, hitStatus: boolean) => {
   }); 
 }
 
-const makeRandomAttack = (chunkData: IData) => {
-  console.log('Random attack initiated!')
+const makeRandomAttack = (chunkData: IData) => {  
   const randomAttack = JSON.parse(chunkData.data) as IRandomAttack;  
   const notAttackedPoint = getNotAttackedRandomPoint(randomAttack);
   const newRandomAttack: IAttack = {
@@ -112,21 +112,44 @@ const makeRandomAttack = (chunkData: IData) => {
     data: JSON.stringify(newRandomAttack),
     id: 0,
   };
-  makeAttack(dataForAttack);
+  makeAttack(dataForAttack, true);
 }
 
-const makeAttack = (chunkData: IData) => {  
+const makeAttack = (chunkData: IData, randomAttack: boolean = false) => {  
   const attack = JSON.parse(chunkData.data) as IAttack;
-  const hit = checkIfHitInBase(attack);
-  if (!hit) {
-    makeNextTurnForPlayers(attack.gameId, false);
-  } else {
-    makeNextTurnForPlayers(attack.gameId, true);
+  const { gameId, indexPlayer } = attack;
+  if (getPlayerWhosTurnItWas(gameId) === indexPlayer) {
+    if (!checkIfItIsAttacked(attack)) {
+      const hit = checkIfHitInBase(attack, randomAttack);
+      if (!hit) {
+        makeNextTurnForPlayers(gameId, false);
+      } else {
+        makeNextTurnForPlayers(gameId, true);
+      }
+    } else {
+      const randomAttackData: IRandomAttack = {
+        gameId: gameId,
+        indexPlayer: indexPlayer,
+      }
+      const newRandomAttack: IData = {
+        type: Datatype.RANDOM_ATTACK,
+        data: JSON.stringify(randomAttackData),
+        id: 0,
+      };
+      makeRandomAttack(newRandomAttack);
+    }    
   }
 };
 
-const makeHit = (point: IPoint, game: IGamePlayersShips, indexPlayer: string, hitStatus: IStatus, playerField: IPoint[][] = []) => {
-  console.log('Attack!!!');  
+const makeHit = (
+  point: IPoint,
+  game: IGamePlayersShips,
+  indexPlayer: string,
+  hitStatus: IStatus,
+  randomAttack: boolean,
+  playerField: IPoint[][] = []  
+) => {
+  randomAttack ? console.log(`Random attack - ${hitStatus}!`) : console.log(`Attack - ${hitStatus}!`);
   const ids = getPlayerIdsForGame(game.gameId);
   ids.forEach((id) => {
     wsServer.clients.forEach((wsClient) => {

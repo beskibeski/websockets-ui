@@ -159,7 +159,7 @@ const getGameById = (gameId: string): IGamePlayersShips | undefined => {
   }
 };
 
-const checkIfHitInBase = (attack: IAttack): boolean => {
+const checkIfHitInBase = (attack: IAttack, randomAttack: boolean): boolean => {
   let isHit = false;
   const { gameId, x, y, indexPlayer } = attack;
   const gameToCheckAttack = getGameById(gameId);
@@ -171,11 +171,11 @@ const checkIfHitInBase = (attack: IAttack): boolean => {
             if (point.x === x && point.y === y && point.isOccupied && !point.isAttacked) {
               point.isAttacked = true;
               const hit = checkIfItIsKilled(point, game.playerField);
-              makeHit(point, gameToCheckAttack, indexPlayer, hit, game.playerField);
+              makeHit(point, gameToCheckAttack, indexPlayer, hit, randomAttack, game.playerField);
               isHit = true;
             } else if (point.x === x && point.y === y && !point.isAttacked) {
               point.isAttacked = true;
-              makeHit(point, gameToCheckAttack, indexPlayer, 'miss');
+              makeHit(point, gameToCheckAttack, indexPlayer, 'miss', randomAttack, game.playerField);
               isHit = false;
             };
           });          
@@ -322,6 +322,27 @@ const checkIfThereArePointWithShips = (playerField: IPoint[][]): boolean => {
   return noShipPoints;
 }
 
+
+const checkIfItIsAttacked = ( attack: IAttack): boolean => {
+  let isAttacked = false;
+  const { gameId, x, y, indexPlayer } = attack;
+  const gameToCheckAttack = getGameById(gameId);
+  if (gameToCheckAttack !== undefined) {
+    gameToCheckAttack.playersWithShips.forEach((game) =>  {
+      if (game.indexPlayer !== indexPlayer) {
+        game.playerField.forEach((position) => {
+          position.forEach((point) => {
+            if (point.x === attack.x && point.y === attack.y && point.isAttacked) {
+              isAttacked = true;
+            }
+          })
+        })
+      }
+    })
+  }
+  return isAttacked;
+}
+
 export {
   addShipsToBase,
   getPlayerIdsForGame,
@@ -334,5 +355,6 @@ export {
   getNotAttackedRandomPoint,
   getPlayerWhosTurnItWas,
   reversePlayersTurns,
+  checkIfItIsAttacked,
 };
 

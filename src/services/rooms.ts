@@ -17,12 +17,11 @@ const createRoom = (wsClient: WebSocketWithId) => {
     type: Datatype.CREATE_NEW_ROOM,
     data: JSON.stringify(room),
     id: 0, 
-  }  
+  };
   wsClient.send(JSON.stringify(data));
-  console.log(getRoomsFromBase())
   addPlayerToRoomBase(room, wsClient);
   updateRoom();
-}
+};
 
 const updateRoom = () => {
   console.log('Rooms updated');
@@ -34,7 +33,7 @@ const updateRoom = () => {
     };
     wsClient.send(JSON.stringify(data));
   });  
-}
+};
 
 const addToRoom = (wsClient: WebSocketWithId, chunkData: IData) => {
   const indexedRoom = JSON.parse(chunkData.data) as { indexRoom: string };
@@ -48,7 +47,7 @@ const addToRoom = (wsClient: WebSocketWithId, chunkData: IData) => {
   updateRoom();
   if (getCurrentRoomFromBaseLength(room) > 1) {
     createGame(room);
-  }
-}
+  };
+};
 
 export { createRoom, updateRoom, addToRoom };
