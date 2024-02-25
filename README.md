@@ -1,3 +1,5 @@
+# NOTE: If the player shoots to the cell that have been already attacked random attack will be initiated!!!
+
 # RSSchool NodeJS websocket task template
 > Static http server and base task packages. 
 > By default WebSocket client tries to connect to the 3000 port.
