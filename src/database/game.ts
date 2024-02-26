@@ -1,6 +1,7 @@
 import IAttack from "../models/attack";
 import { IAttackFeedback, IStatus } from "../models/attack-feedback";
 import { IGamePlayersShips, IPlayersWithShips, IPoint } from "../models/game-players-ships";
+import IPosition from "../models/position";
 import IRandomAttack from "../models/random-attack";
 import IAddShips from "../models/ships";
 import { makeHit, startGame } from "../services/game";
@@ -104,17 +105,11 @@ const addShipsToField = (playerData: IPlayersWithShips) => {
   });
 }
 
-const getNotAttackedRandomPoint = (randomAttack: IRandomAttack): { x: number, y: number} => {
-  let notAttackedPoint = {
-    x: -1,
-    y: -1,
-  }
+const getNotAttackedRandomPoint = (randomAttack: IRandomAttack): IPosition => {
+  let notAttackedPoint: IPosition = { x: -1, y: -1 };  
   const { gameId, indexPlayer} = randomAttack;
   const gameToMakeNotAttackePointsArray = getGameById(gameId);
-  let notAttackedPoints: [{ x: number, y: number}] = [{
-    x: -1,
-    y: -1,
-  }];
+  let notAttackedPoints: IPosition[] = [];
   if (gameToMakeNotAttackePointsArray !== undefined) {
     gameToMakeNotAttackePointsArray.playersWithShips.forEach((game) =>  {
       if (game.indexPlayer !== indexPlayer) {
@@ -125,7 +120,6 @@ const getNotAttackedRandomPoint = (randomAttack: IRandomAttack): { x: number, y:
             };
           });          
         })
-        notAttackedPoints.slice(1);
         const randomIndex = Math.floor(Math.random() * (notAttackedPoints.length - 1));
         notAttackedPoint = notAttackedPoints[randomIndex];
       };
@@ -228,7 +222,7 @@ const checkIfItIsKilled = (point: IPoint, playerField: IPoint[][]): IStatus => {
   return sum > 0 ? 'shot' : 'killed'; 
 };
 
-const destroyShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): [{ x: number, y: number }] => {  
+const destroyShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): IPosition[] => {  
   const {
     position: {
       x,
@@ -267,46 +261,38 @@ const destroyShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[]
   return destroyArray;
 }
 
-const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): [{ x: number, y: number }] => {
+const missedShipArray = (attackFeedback: IAttackFeedback, playerField: IPoint[][]): IPosition[] => {
    const {
     position: {
       x,
       y,
     }
   } = attackFeedback;
-  let missedArray: [{ x: number, y: number }] = [{ x: -1, y: -1 }];
+  let missedArray: IPosition[] = [];
   if (y - 1 >= 0 && !playerField[x][y - 1].isOccupied && !playerField[x][y - 1].isAttacked) {
     missedArray.push({ x: x, y: y - 1 });
-    playerField[x][y - 1].isAttacked === !playerField[x][y - 1].isAttacked;
   };
   if (x - 1 >= 0 && y - 1 >= 0 && !playerField[x - 1][y - 1].isOccupied && !playerField[x - 1][y - 1].isAttacked) {
     missedArray.push({ x: x - 1, y: y - 1 });
-    playerField[x - 1][y - 1].isAttacked === !playerField[x - 1][y - 1].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y - 1 >= 0 && !playerField[x + 1][y - 1].isOccupied && !playerField[x + 1][y - 1].isAttacked) {
     missedArray.push({ x: x + 1, y: y - 1 });
-    playerField[x + 1][y - 1].isAttacked === !playerField[x + 1][y - 1];
   };
   if (y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x][y + 1].isOccupied && !playerField[x][y + 1].isAttacked) {
     missedArray.push({ x: x, y: y + 1 });
-    playerField[x][y + 1].isAttacked === !playerField[x][y + 1];
   };
   if (x - 1 >= 0 && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x - 1][y + 1].isOccupied && !playerField[x - 1][y + 1].isAttacked) {
     missedArray.push({ x: x - 1, y: y + 1 });
-    playerField[x - 1][y + 1].isAttacked === !playerField[x - 1][y + 1].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && y + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y + 1].isOccupied && !playerField[x + 1][y + 1].isAttacked) {
     missedArray.push({ x: x + 1, y: y + 1 });
-    playerField[x + 1][y + 1].isAttacked === !playerField[x + 1][y + 1];
   };
   if (x - 1 >= 0 && !playerField[x - 1][y].isOccupied && !playerField[x - 1][y].isAttacked) {
     missedArray.push({ x: x - 1, y: y });
-    playerField[x - 1][y].isAttacked === !playerField[x - 1][y].isAttacked;
   };
   if (x + 1 < NUMBER_OF_POINTS_IN_ROW && !playerField[x + 1][y].isOccupied && !playerField[x + 1][y].isAttacked) {
     missedArray.push({ x: x + 1, y: y });
-    playerField[x + 1][y].isAttacked === !playerField[x + 1][y].isAttacked;
-  };   
+  };
   return missedArray;
 };
 

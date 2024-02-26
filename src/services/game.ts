@@ -12,7 +12,7 @@ import {
   checkIfHitInBase,
   checkIfItIsAttacked,
   checkIfThereArePointWithShips,
-  destroyShipArray, 
+  destroyShipArray,
   getNotAttackedRandomPoint,
   getPlayerIdsForGame,
   getPlayerWhosTurnItWas,
@@ -184,8 +184,7 @@ const makeHit = (
               id: 0,
             }
             wsClient.send(JSON.stringify(data));          
-          missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {
-            if (missedPosition.x !== - 1) {
+          missedShipArray(attackFeedback, playerField).forEach((missedPosition) => {           
               const attackFeedback: IAttackFeedback = {
                 position: {
                   x: missedPosition.x,
@@ -193,21 +192,21 @@ const makeHit = (
                 },
                 currentPlayer: indexPlayer,
                 status: 'miss',
-              };
+              };              
               const data: IData = {
                 type: Datatype.ATTACK,
                 data: JSON.stringify(attackFeedback),
                 id: 0,
               }
-              wsClient.send(JSON.stringify(data));
+              wsClient.send(JSON.stringify(data));              
             }
+          );
           });
-          });
-          const isWin = checkIfThereArePointWithShips(playerField);
+          const isWin = checkIfThereArePointWithShips(playerField);          
           if (isWin) {
             makeWin(indexPlayer, wsClient as WebSocketWithId);
           };
-        } 
+        }       
       }
     });      
   })
