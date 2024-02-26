@@ -15,7 +15,7 @@ const addRoomToBase = (room: IRoom): void => {
 const addPlayerToRoomBase = (room: IRoom, wsSocket: WebSocketWithId): void => {
   console.log('Player is added to room');  
   rooms.forEach((roomInBase) => {    
-    if (roomInBase.roomId === room.roomId && roomInBase.roomUsers.length <= 1) {      
+    if (roomInBase.roomId === room.roomId && roomInBase.roomUsers.length <= 1) {
       roomInBase.roomUsers.push(getPlayerById(wsSocket.id));
     }
   });  

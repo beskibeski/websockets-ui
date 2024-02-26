@@ -1,7 +1,7 @@
 import IPlayer from '../models/player';
 import IData from '../models/data';
 import IPlayerResponse from '../models/player-response';
-import { addPlayer } from '../database/players';
+import { addPlayer, getPlayerIdByName, getPlayers } from '../database/players';
 import Datatype from '../models/types';
 import { updateRoom } from './rooms';
 import updateWinners from './winners';
@@ -20,9 +20,12 @@ const login = (wsClient: WebSocketWithId, playerData: IPlayer) => {
       id: 0,      
     };
     console.log(`Login for player ${playerData.name} successful`);
-    wsClient.send(JSON.stringify(dataToSend));    
+    wsClient.send(JSON.stringify(dataToSend));
+    if (getPlayerIdByName(playerData.name) !== wsClient.id) {
+      wsClient.id = getPlayerIdByName(playerData.name);
+    };
     updateRoom();
-    updateWinners();       
+    updateWinners();
   }
   
   const loginWithWrongPassword = (wsClient: WebSocketWithId, playerData: IPlayer) => {

@@ -1,6 +1,5 @@
 import IPlayer from '../models/player';
 import IRoomPlayer from '../models/room-player';
-import WebSocketWithId from '../models/websocket';
 
 const players: IPlayer[] = [];
 
@@ -29,12 +28,21 @@ const getPlayerNameById = (playerId: string): string => {
 }
 
 const getPlayerById = (playerId: string): IRoomPlayer => {
-  const player: IPlayer = players.filter((player) => player.index === playerId)[0];
+  const player: IPlayer = players.filter((player) => player.index === playerId)[0];  
   return {
     name: player.name,
     index: player.index,
   }
 };
+
+const getPlayerIdByName = (playerName: string): string => {
+  const newPlayer = players.find((player) => player.name === playerName);
+  if (newPlayer !== undefined) {
+    return newPlayer.index;
+  } else {
+    return '';
+  }
+}
 
 export { 
   addPlayer,
@@ -43,5 +51,6 @@ export {
   checkPlayer, 
   getPlayerNameById,
   getPlayerById,
+  getPlayerIdByName,
 };
   
